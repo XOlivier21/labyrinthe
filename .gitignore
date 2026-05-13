@@ -1,0 +1,5 @@
+node_modules/
+labyrinth.sqlite3
+.DS_Store
+dist/
+*.log

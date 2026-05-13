@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Labyrinthe Electron</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Labyrinthe Electron</h1>
+    <div id="nav"></div>
+  </header>
+
+  <main>
+    <section id="auth-section" class="card">
+      <h2>Connexion / Inscription</h2>
+      <div class="form-grid">
+        <div>
+          <h3>Connexion</h3>
+          <input id="login-email" type="email" placeholder="Email" />
+          <input id="login-password" type="password" placeholder="Mot de passe" />
+          <button id="login-button">Se connecter</button>
+        </div>
+        <div>
+          <h3>Inscription</h3>
+          <input id="register-name" type="text" placeholder="Nom" />
+          <input id="register-email" type="email" placeholder="Email" />
+          <input id="register-password" type="password" placeholder="Mot de passe" />
+          <button id="register-button">Créer un compte</button>
+        </div>
+      </div>
+      <div id="auth-message" class="message"></div>
+    </section>
+
+    <section id="dashboard-section" class="hidden">
+      <div class="toolbar">
+        <div>
+          <strong id="user-welcome"></strong>
+          <span id="user-role"></span>
+        </div>
+        <button id="logout-button">Se déconnecter</button>
+      </div>
+
+      <div id="message-area" class="message hidden"></div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="labyrinth-tab">Mes labyrinthes</button>
+        <button class="tab" data-tab="create-tab">Créer</button>
+        <button class="tab" data-tab="solve-tab">Résoudre</button>
+        <button class="tab" data-tab="admin-tab">Administration</button>
+      </div>
+
+      <div id="labyrinth-tab" class="tab-panel active card">
+        <h2>Mes labyrinthes</h2>
+        <div id="labyrinth-list"></div>
+        <div id="labyrinth-preview" class="maze-preview"></div>
+      </div>
+
+      <div id="create-tab" class="tab-panel card hidden">
+        <h2>Créer un labyrinthe</h2>
+        <input id="labyrinth-title" type="text" placeholder="Titre" />
+        <select id="labyrinth-size">
+          <option value="small">Petite</option>
+          <option value="medium" selected>Moyenne</option>
+          <option value="large">Grande</option>
+        </select>
+        <input id="labyrinth-difficulty" type="range" min="1" max="10" value="5" />
+        <div class="range-label">Difficulté: <span id="difficulty-value">5</span></div>
+        <button id="generate-button">Générer</button>
+        <button id="save-button" disabled>Enregistrer</button>
+        <div id="generated-preview" class="maze-preview"></div>
+      </div>
+
+      <div id="solve-tab" class="tab-panel card hidden">
+        <h2>Résolution automatique</h2>
+        <div id="solve-list"></div>
+        <div id="solution-preview" class="maze-preview"></div>
+      </div>
+
+      <div id="admin-tab" class="tab-panel card hidden">
+        <h2>Administration</h2>
+        <div id="admin-stats" class="admin-grid"></div>
+        <div class="admin-panel">
+          <div>
+            <h3>Utilisateurs</h3>
+            <div id="user-list"></div>
+          </div>
+          <div>
+            <h3>Labyrinthes globaux</h3>
+            <div id="global-labyrinth-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Electron + SQLite + JWT + bcryptjs</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

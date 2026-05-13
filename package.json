@@ -1,0 +1,18 @@
+{
+  "name": "projet_labyrinthe_electron",
+  "productName": "Labyrinthe Electron",
+  "version": "1.0.0",
+  "description": "Application desktop de création et résolution de labyrinthes avec Electron, SQLite, JWT et bcrypt.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Equipe Labyrinthe",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "electron": "^26.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.6"
+  }
+}
