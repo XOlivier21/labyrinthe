@@ -1,4 +1,4 @@
-# Projet Labyrinthe Electron
+# Le labyrinthe de Dédale
 
 Application desktop multiplateforme de création et résolution de labyrinthes avec Electron, SQLite, bcryptjs et JWT.
 

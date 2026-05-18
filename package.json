@@ -1,8 +1,8 @@
 {
-  "name": "projet_labyrinthe_electron",
-  "productName": "Labyrinthe Electron",
+  "name": "le_labyrinthe_de_dedale",
+  "productName": "Le labyrinthe de Dédale",
   "version": "1.0.0",
-  "description": "Application desktop de création et résolution de labyrinthes avec Electron, SQLite, JWT et bcrypt.",
+  "description": "Le labyrinthe de Dédale - Application de création et résolution de labyrinthes.",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
