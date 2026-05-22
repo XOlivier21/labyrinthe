@@ -33,6 +33,7 @@ let currentPlayMaze = null;
 let playerPos = null;
 let playPath = [];
 let playTargetElement = null;
+let playerRotation = 0;
 
 document.addEventListener('keydown', (e) => {
   if (!isPlaying || !playerPos || !currentPlayMaze) return;
@@ -44,10 +45,10 @@ document.addEventListener('keydown', (e) => {
   const maze = currentPlayMaze;
   let dx = 0, dy = 0;
   
-  if (e.key === 'ArrowUp') dy = -1;
-  else if (e.key === 'ArrowDown') dy = 1;
-  else if (e.key === 'ArrowLeft') dx = -1;
-  else if (e.key === 'ArrowRight') dx = 1;
+  if (e.key === 'ArrowUp') { dy = -1; playerRotation = -90; }
+  else if (e.key === 'ArrowDown') { dy = 1; playerRotation = 90; }
+  else if (e.key === 'ArrowLeft') { dx = -1; playerRotation = 180; }
+  else if (e.key === 'ArrowRight') { dx = 1; playerRotation = 0; }
   else return;
 
   const nx = playerPos.x + dx;
@@ -63,6 +64,7 @@ document.addEventListener('keydown', (e) => {
     if (playerPos.x === maze.end.x && playerPos.y === maze.end.y) {
       isPlaying = false;
       showMessage('Félicitations ! Vous avez résolu le labyrinthe en ' + (playPath.length - 1) + ' déplacements !');
+      setTimeout(() => clearMessage(), 4000);
     }
   }
 });
@@ -130,6 +132,15 @@ function clearMessage() {
   }
 }
 
+function triggerAuthShake() {
+  const authCard = document.querySelector('#auth-section .card');
+  if (authCard) {
+    authCard.classList.remove('shake');
+    void authCard.offsetWidth; // Force le navigateur à relancer l'animation
+    authCard.classList.add('shake');
+  }
+}
+
 function setActiveTab(tabName) {
   tabs.forEach((tab) => {
     tab.classList.toggle('active', tab.dataset.tab === tabName);
@@ -169,6 +180,7 @@ loginButton.addEventListener('click', async () => {
     enterDashboard();
   } catch (err) {
     showMessage(err.message);
+    triggerAuthShake();
   }
 });
 
@@ -185,6 +197,7 @@ registerButton.addEventListener('click', async () => {
     enterDashboard();
   } catch (err) {
     showMessage(err.message);
+    triggerAuthShake();
   }
 });
 
@@ -211,6 +224,7 @@ generateButton.addEventListener('click', async () => {
     playerPos = { x: maze.start.x, y: maze.start.y };
     playPath = [{ ...playerPos }];
     playTargetElement = generatedPreview;
+    playerRotation = 0;
     
     renderMazePreview(maze, playPath, playTargetElement, true);
     clearMessage();
@@ -253,8 +267,7 @@ async function loadLabyrinths() {
       <p>Tailles: ${item.size} • Difficulté: ${item.difficulty}</p>
       <div class="label-row">
         <button class="view-button secondary">Voir</button>
-        <button class="play-button" style="background: linear-gradient(135deg, #FBBF24, #D97706); color: #FFF; border: none;">Jouer</button>
-        <button class="solve-button">Résoudre</button>
+        <button class="arcade-button play-button">Jouer</button>
         <button class="export-button secondary">Exporter PNG</button>
         <button class="rename-button secondary">Renommer</button>
         <button class="delete-button danger">Supprimer</button>
@@ -270,14 +283,10 @@ async function loadLabyrinths() {
       playerPos = { x: item.maze.start.x, y: item.maze.start.y };
       playPath = [{ ...playerPos }];
       playTargetElement = labyrinthPreview;
+      playerRotation = 0;
       renderMazePreview(item.maze, playPath, playTargetElement, true);
       clearMessage();
       if (labyrinthPreview) labyrinthPreview.scrollIntoView({ behavior: 'smooth' });
-    });
-    card.querySelector('.solve-button').addEventListener('click', async () => {
-      isPlaying = false;
-      const solution = await window.api.solveLabyrinth({ maze: item.maze });
-      renderMazePreview(item.maze, solution, labyrinthPreview);
     });
     card.querySelector('.export-button').addEventListener('click', () => {
       exportMazeToPNG(item.maze, []);
@@ -314,6 +323,8 @@ async function loadLabyrinths() {
     card.querySelector('.delete-button').addEventListener('click', async () => {
       if (!confirm('Supprimer ce labyrinthe ?')) return;
       await window.api.deleteLabyrinth({ token: currentToken, labyrinthId: item.id });
+      labyrinthPreview.innerHTML = ''; // On vide l'écran de la borne d'arcade
+      isPlaying = false; // On arrête le mode jeu au cas où
       await loadLabyrinths();
     });
     labyrinthList.appendChild(card);
@@ -325,21 +336,21 @@ async function loadLabyrinths() {
 function renderMazePreview(maze, path = [], targetElement = generatedPreview, isPlayingRender = false) {
   if (!targetElement) return;
   targetElement.innerHTML = '';
-  const header = document.createElement('div');
-  header.className = 'maze-header';
-  const title = document.createElement('div');
-  title.className = 'maze-title';
-  title.textContent = maze.title || 'Aperçu du Labyrinthe';
-  const meta = document.createElement('div');
-  meta.className = 'maze-meta';
-  meta.textContent = `Taille : ${maze.size} – Difficulté : ${maze.difficulty}`;
-  header.appendChild(title);
-  header.appendChild(meta);
-  targetElement.appendChild(header);
+  
+  const arcadeMachine = document.createElement('div');
+  arcadeMachine.className = 'arcade-machine';
+
+  const consoleOverlay = document.createElement('img');
+  consoleOverlay.src = '../assets/arcade game.png'; // Chemin vers l'image de votre console
+  consoleOverlay.className = 'console-overlay';
+  arcadeMachine.appendChild(consoleOverlay);
+
+  const screenWrapper = document.createElement('div');
+  screenWrapper.className = 'maze-preview-screen';
 
   const preview = document.createElement('div');
   preview.className = 'maze-grid';
-  preview.style.gridTemplateColumns = `repeat(${maze.width}, 16px)`;
+  preview.style.gridTemplateColumns = `repeat(${maze.width}, 20px)`;
   const pathSet = new Set((path || []).map((pos) => `${pos.x}|${pos.y}`));
   for (let y = 0; y < maze.height; y += 1) {
     for (let x = 0; x < maze.width; x += 1) {
@@ -358,24 +369,40 @@ function renderMazePreview(maze, path = [], targetElement = generatedPreview, is
           const lastPos = path[path.length - 1];
           if (lastPos.x === x && lastPos.y === y) {
             cell.classList.add('player');
+          cell.style.setProperty('--rotation', `${playerRotation}deg`);
           }
         }
       }
       preview.appendChild(cell);
     }
   }
-  targetElement.appendChild(preview);
+  screenWrapper.appendChild(preview);
+  arcadeMachine.appendChild(screenWrapper);
+  
+  targetElement.appendChild(arcadeMachine);
+
+  const infoContainer = document.createElement('div');
+  infoContainer.className = 'maze-info-below';
+
+  const title = document.createElement('div');
+  title.className = 'maze-title';
+  title.textContent = maze.title || 'Aperçu du Labyrinthe';
+
+  const meta = document.createElement('div');
+  meta.className = 'maze-meta';
+  meta.textContent = `Taille : ${maze.size} – Difficulté : ${maze.difficulty}`;
+  
+  infoContainer.appendChild(title);
+  infoContainer.appendChild(meta);
+
   if (path.length) {
     const metaResult = document.createElement('p');
-    metaResult.textContent = `Solution trouvée (${path.length} étapes)`;
-    if (isPlayingRender) {
-      metaResult.textContent = `Déplacements : ${path.length - 1}`;
-    } else {
-      metaResult.textContent = `Solution trouvée (${path.length} étapes)`;
-    }
+    metaResult.textContent = isPlayingRender ? `Déplacements : ${path.length - 1}` : `Solution trouvée (${path.length} étapes)`;
     metaResult.className = 'maze-meta';
-    targetElement.appendChild(metaResult);
+    infoContainer.appendChild(metaResult);
   }
+  
+  targetElement.appendChild(infoContainer);
 }
 
 async function enterDashboard() {
@@ -407,57 +434,23 @@ async function populateSolveList() {
       <h3>${item.title}</h3>
       <p>${item.size} • difficulté ${item.difficulty}</p>
       <div class="label-row">
-        <button class="solve-button">Voir solution</button>
-        <button class="play-button" style="background: linear-gradient(135deg, #FBBF24, #D97706); color: #FFF; border: none;">Jouer</button>
-        <button class="export-button secondary hidden">Exporter PNG</button>
+        <button class="arcade-button play-button">Jouer</button>
+        <button class="export-button secondary">Exporter PNG</button>
       </div>
     `;
-    card.querySelector('.solve-button').addEventListener('click', async () => {
-      isPlaying = false;
-      const solution = await window.api.solveLabyrinth({ maze: item.maze });
-      solutionPreview.innerHTML = '';
-      const container = document.createElement('div');
-      container.className = 'maze-grid';
-      container.style.gridTemplateColumns = `repeat(${item.maze.width}, 16px)`;
-      const pathSet = new Set(solution.map((pos) => `${pos.x}|${pos.y}`));
-      for (let y = 0; y < item.maze.height; y += 1) {
-        for (let x = 0; x < item.maze.width; x += 1) {
-          const cell = document.createElement('div');
-          cell.className = 'maze-cell';
-          if (item.maze.cells[y][x] === 1) {
-            cell.classList.add('wall');
-          } else {
-            if (pathSet.has(`${x}|${y}`)) {
-              cell.classList.add('path');
-            }
-            if (item.maze.start.x === x && item.maze.start.y === y) cell.classList.add('start');
-            if (item.maze.end.x === x && item.maze.end.y === y) cell.classList.add('end');
-          }
-          container.appendChild(cell);
-        }
-      }
-      solutionPreview.appendChild(container);
-      const info = document.createElement('p');
-      info.textContent = `Chemin solution: ${solution.length} cases`;
-      solutionPreview.appendChild(info);
-      renderMazePreview(item.maze, solution, solutionPreview);
+    
+    card.querySelector('.export-button').addEventListener('click', () => exportMazeToPNG(item.maze, []));
 
-      const exportBtn = card.querySelector('.export-button');
-      exportBtn.classList.remove('hidden');
-      exportBtn.onclick = () => exportMazeToPNG(item.maze, solution);
-    });
     card.querySelector('.play-button').addEventListener('click', () => {
       isPlaying = true;
       currentPlayMaze = item.maze;
       playerPos = { x: item.maze.start.x, y: item.maze.start.y };
       playPath = [{ ...playerPos }];
       playTargetElement = solutionPreview;
+      playerRotation = 0;
       renderMazePreview(item.maze, playPath, playTargetElement, true);
       clearMessage();
       if (solutionPreview) solutionPreview.scrollIntoView({ behavior: 'smooth' });
-      
-      const exportBtn = card.querySelector('.export-button');
-      exportBtn.classList.add('hidden');
     });
     solveList.appendChild(card);
   });
@@ -531,16 +524,16 @@ function exportMazeToPNG(maze, path = []) {
 
   const pathSet = new Set((path || []).map((pos) => `${pos.x}|${pos.y}`));
 
-  ctx.fillStyle = '#12121A'; // Arrière-plan magique sombre
+  ctx.fillStyle = '#030D03'; // Arrière-plan CRT vert
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let y = 0; y < maze.height; y += 1) {
     for (let x = 0; x < maze.width; x += 1) {
       if (maze.cells[y][x] === 1) {
-        ctx.fillStyle = '#5B21B6'; // Murs magiques contrastés
+        ctx.fillStyle = '#10B981'; // Murs (Vert néon)
         ctx.fillRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2);
       } else {
-        ctx.fillStyle = '#181825'; // Chemins très sombres
+        ctx.fillStyle = '#061A06'; // Chemins très sombres verts
         ctx.fillRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2);
 
         if (pathSet.has(`${x}|${y}`)) {
