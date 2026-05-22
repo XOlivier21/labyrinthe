@@ -1,6 +1,7 @@
 # Le labyrinthe de Dédale
 
-Application desktop multiplateforme de création et résolution de labyrinthes avec Electron, SQLite, bcryptjs et JWT.
+Application desktop multiplateforme de création et résolution de labyrinthes avec Electron, SQLite, bcryptjs et JWT. 
+L'application est dotée d'une interface immersive inspirée des bornes d'arcade rétro des années 80 !
 
 ## Fonctionnalités
 
@@ -8,6 +9,8 @@ Application desktop multiplateforme de création et résolution de labyrinthes a
 - CRUD des labyrinthes stockés en SQLite au format JSON
 - Génération automatique de labyrinthes selon taille et difficulté
 - Résolution automatique avec affichage du chemin
+- Design visuel immersif : Style Arcade Rétro avec overlay console, écran CRT (phosphore vert), et "scanlines"
+- Exportation des labyrinthes et de leurs solutions au format image (PNG)
 - Interface administrateur pour gérer utilisateurs et labyrinthes
 
 ## Structure du projet
@@ -41,8 +44,10 @@ npm start
 
 - Créer un compte pour démarrer
 - Générer un labyrinthe via l’onglet de création
-- Enregistrer, visualiser, résoudre ou supprimer vos labyrinthes
-- En tant qu’administrateur (`admin@labyrinthe.local` / `admin1234`), accéder à l’onglet administration
+- Enregistrer, visualiser, renommer ou supprimer vos labyrinthes
+- Cliquer sur le bouton **Jouer** pour vous déplacer dans le labyrinthe directement sur la borne d'arcade virtuelle !
+- Exporter vos labyrinthes favoris ou leurs solutions en fichier image (PNG)
+
 
 ## Notes techniques
 
@@ -51,10 +56,11 @@ npm start
 - Les labyrinthes sont enregistrés sous forme JSON dans la base de données
 - L’algorithme de génération utilise une découpe récursive du labyrinthe
 - La résolution automatique utilise une recherche en largeur (BFS) pour trouver le chemin
+- L'interface intègre des techniques CSS avancées (overlays transparents, pointer-events, rotations dynamiques) pour créer une illusion de jeu vidéo rétro complet.
 
 ## Améliorations possibles
 
-- Export/import de labyrinthes
+- Importation de labyrinthes depuis un fichier
 - Drag & drop ou éditeur en temps réel
 - Version multi-utilisateur et stockage distant
 - Création de l’exécutable Windows avec `electron-builder`

@@ -217,16 +217,8 @@ generateButton.addEventListener('click', async () => {
     const maze = await window.api.generateLabyrinth({ size, difficulty, title });
     generatedMazeData = maze;
     saveButton.disabled = false;
+    isPlaying = false;
     renderMazePreview(maze, []);
-    
-    isPlaying = true;
-    currentPlayMaze = maze;
-    playerPos = { x: maze.start.x, y: maze.start.y };
-    playPath = [{ ...playerPos }];
-    playTargetElement = generatedPreview;
-    playerRotation = 0;
-    
-    renderMazePreview(maze, playPath, playTargetElement, true);
     clearMessage();
   } catch (err) {
     showMessage(err.message);
@@ -267,7 +259,7 @@ async function loadLabyrinths() {
       <p>Tailles: ${item.size} • Difficulté: ${item.difficulty}</p>
       <div class="label-row">
         <button class="view-button secondary">Voir</button>
-        <button class="arcade-button play-button">Jouer</button>
+        <button class="solve-button secondary">Résoudre</button>
         <button class="export-button secondary">Exporter PNG</button>
         <button class="rename-button secondary">Renommer</button>
         <button class="delete-button danger">Supprimer</button>
@@ -277,16 +269,12 @@ async function loadLabyrinths() {
       isPlaying = false;
       renderMazePreview(item.maze, item.solution || [], labyrinthPreview);
     });
-    card.querySelector('.play-button').addEventListener('click', () => {
-      isPlaying = true;
-      currentPlayMaze = item.maze;
-      playerPos = { x: item.maze.start.x, y: item.maze.start.y };
-      playPath = [{ ...playerPos }];
-      playTargetElement = labyrinthPreview;
-      playerRotation = 0;
-      renderMazePreview(item.maze, playPath, playTargetElement, true);
-      clearMessage();
-      if (labyrinthPreview) labyrinthPreview.scrollIntoView({ behavior: 'smooth' });
+    card.querySelector('.solve-button').addEventListener('click', async () => {
+      isPlaying = false;
+      const solution = await window.api.solveLabyrinth({ maze: item.maze });
+      renderMazePreview(item.maze, solution, labyrinthPreview);
+      const exportBtn = card.querySelector('.export-button');
+      exportBtn.onclick = () => exportMazeToPNG(item.maze, solution);
     });
     card.querySelector('.export-button').addEventListener('click', () => {
       exportMazeToPNG(item.maze, []);
@@ -324,7 +312,7 @@ async function loadLabyrinths() {
       if (!confirm('Supprimer ce labyrinthe ?')) return;
       await window.api.deleteLabyrinth({ token: currentToken, labyrinthId: item.id });
       labyrinthPreview.innerHTML = ''; // On vide l'écran de la borne d'arcade
-      isPlaying = false; // On arrête le mode jeu au cas où
+      isPlaying = false;
       await loadLabyrinths();
     });
     labyrinthList.appendChild(card);
@@ -369,7 +357,7 @@ function renderMazePreview(maze, path = [], targetElement = generatedPreview, is
           const lastPos = path[path.length - 1];
           if (lastPos.x === x && lastPos.y === y) {
             cell.classList.add('player');
-          cell.style.setProperty('--rotation', `${playerRotation}deg`);
+            cell.style.setProperty('--rotation', `${playerRotation}deg`);
           }
         }
       }
@@ -434,6 +422,7 @@ async function populateSolveList() {
       <h3>${item.title}</h3>
       <p>${item.size} • difficulté ${item.difficulty}</p>
       <div class="label-row">
+        <button class="solve-button secondary">Voir solution</button>
         <button class="arcade-button play-button">Jouer</button>
         <button class="export-button secondary">Exporter PNG</button>
       </div>
@@ -441,6 +430,14 @@ async function populateSolveList() {
     
     card.querySelector('.export-button').addEventListener('click', () => exportMazeToPNG(item.maze, []));
 
+    card.querySelector('.solve-button').addEventListener('click', async () => {
+      isPlaying = false;
+      const solution = await window.api.solveLabyrinth({ maze: item.maze });
+      renderMazePreview(item.maze, solution, solutionPreview);
+      const exportBtn = card.querySelector('.export-button');
+      exportBtn.onclick = () => exportMazeToPNG(item.maze, solution);
+    });
+    
     card.querySelector('.play-button').addEventListener('click', () => {
       isPlaying = true;
       currentPlayMaze = item.maze;
